@@ -7,7 +7,7 @@ struct CocktailAppApp: App {
     var body: some Scene {
         WindowGroup {
             TabView {
-                HomeView()
+                RootView()
                     .tabItem {
                         Label("Accueil", systemImage: "house.fill")
                     }
