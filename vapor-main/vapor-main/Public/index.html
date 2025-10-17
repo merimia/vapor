@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cocktail Info</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+                Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+            background-color: #f2f7f9;
+            margin: 20px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .cocktail-image {
+            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .ingredients {
+            margin-top: 15px;
+            padding-left: 20px;
+        }
+        .instructions {
+            margin-top: 20px;
+            background: #dff0ea;
+            padding: 15px;
+            border-radius: 8px;
+            line-height: 1.5;
+        }
+        .search-container {
+            margin-bottom: 30px;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 8px 12px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 9px 16px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            background-color: #27ae60;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1e8449;
+        }
+        .error {
+            color: red;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1> Rechercher un cocktail </h1>
+    <div class="search-container">
+        <input id="cocktailName" type="text" placeholder="Entrez un nom de cocktail (ex: Margarita)" />
+        <button onclick="fetchCocktail()">Chercher</button>
+    </div>
+    <div id="cocktailResult"></div>
+
+    <script>
+        async function fetchCocktail() {
+            const name = document.getElementById('cocktailName').value.trim();
+            if (!name) {
+                alert("Veuillez entrer un nom de cocktail.");
+                return;
+            }
+
+            const resultDiv = document.getElementById('cocktailResult');
+            resultDiv.innerHTML = "Chargement...";
+            try {
+                const response = await fetch(`/cocktail?name=${encodeURIComponent(name)}`);
+                if (!response.ok) {
+                    throw new Error("Cocktail non trouvé");
+                }
+                const data = await response.json();
+                const cocktail = data.drinks[0];
+                if (!cocktail) {
+                    throw new Error("Aucun cocktail trouvé");
+                }
+
+                // Build ingredients list
+                const ingredients = [];
+                for (let i = 1; i <= 15; i++) {
+                    const ingredient = cocktail[`strIngredient${i}`];
+                    const measure = cocktail[`strMeasure${i}`];
+                    if (ingredient) {
+                        ingredients.push(`${measure ? measure.trim() + ' ' : ''}${ingredient.trim()}`);
+                    }
+                }
+
+                resultDiv.innerHTML = `
+                    <h1>${cocktail.strDrink}</h1>
+                    ${cocktail.strDrinkThumb ? `<img src="${cocktail.strDrinkThumb}" alt="${cocktail.strDrink}" class="cocktail-image" />` : ''}
+                    <h2>Ingrédients :</h2>
+                    <ul class="ingredients">
+                        ${ingredients.map(i => `<li>${i}</li>`).join('')}
+                    </ul>
+                    <h2>Instructions :</h2>
+                    <p class="instructions">${cocktail.strInstructions}</p>
+                `;
+            } catch (err) {
+                resultDiv.innerHTML = `<p class="error">${err.message}</p>`;
+            }
+
+        }
+    </script>
+</body>
+</html>
